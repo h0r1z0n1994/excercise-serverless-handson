@@ -65,4 +65,63 @@ def lambda_handler(event, context):
 
 ## 統合タイプをLambda関数を選択し、先程作成したLambda関数を紐付ける
 
+## マッピングテンプレートを使ったHTML生成
 
+GETメソッドの設定の中で、「統合レスポンス」の項目を選択します。
+この中で「本文マッピングテンプレート」を設定します。
+
+Lambda関数からJsonデータが来た場合、統合レスポンスが指定した形式に変換してレスポンスを返す設定をします。
+
+Content-Typeの[application/json]を選択
+エディタに下記を貼り付ける
+
+```
+#set($inputRoot = $input.path('$'))
+
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script type="text/javascript">
+        <!--javascriptのコード-->
+        </script>
+        <style type="text/css">
+        <!--cssのコード-->
+        </style>
+    </head>
+<body>
+    #foreach($elem in $inputRoot['Items'])
+    <div class="issue">
+        "$elem.content"
+        <div class="timestamp">
+            "$elem.timestamp"
+        </div>
+    </div>
+    #end
+</body>
+</html>
+```
+
+## メソッドレスポンスの設定
+
++ レスポンス本文のコンテンツタイプを「application/json」から「text/html」に変更する
+
+
+## POSTデータを処理する設定
+
++ POSTメソッドの「統合リクエスト」を選択
+
++ [マッピングテンプレート]を選択
+
++ [Content-Type]に「application/x-www-form-urlencoded」を受信した時の受信データ処理の内容を記載します
+
+```
+{
+#set( $tmpstr = $input.body )
+#foreach( $keyandvaluestr in $tmpstr.split( '&' ) )
+#set( $keyandvaluearray = $keyandvaluestr.split( '=' ) )
+        "$keyandvaluearray[0]" : "$keyandvaluearray[1]"
+#end
+}
+```
+
+# S3のエンドポイントにアクセスしてフォームが動作することを確認する
